@@ -1,0 +1,141 @@
+{{extend './layout.html'}} {{block 'content'}}
+<div class="container" style="margin-left: 5vw;">
+  <div class="jumbotron" style="margin-top: 10vh; margin-left: 10vw; width: 65vw;">
+    <div class="page-header">
+      <h1>Port <small>configuration</small></h1>
+    </div>
+    <div class="panel panel-primary">
+      <div class="panel-heading">Add</div>
+      <div class="panel-body">
+        <form class="form-inline" id="add_form">
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              name="name"
+              placeholder="Name(eg.xx-xx-project)"
+            />
+          </div>
+          <div class="form-group">
+            <label for="host">Host</label>
+            <input
+              type="text"
+              class="form-control"
+              name="host"
+              id="host"
+              placeholder="Host for this service"
+            />
+          </div>
+          <div class="form-group">
+            <label for="route">Route</label>
+            <input
+            name="route"
+              type="text"
+              class="form-control"
+              id="route"
+              placeholder="route for proxy"
+            />
+          </div>
+          <input type="reset" value="reset" class="btn btn-warning" style="margin-left: 10%;"/>
+          <button type="submit" class="btn btn-success" style="margin-left: 1%;">Add</button>
+        </form>
+        <div id="add_info" class="alert alert-success" style="display: none;"></div>
+      </div>
+    </div>
+
+    <div class="panel panel-success">
+      <div class="panel-heading">Port List</div>
+      <div class="panel-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <th>
+                Name
+              </th>
+              <th>
+                Host
+              </th>
+              <th>
+                Route
+              </th>
+              <th>
+                Opration
+              </th>
+            </thead>
+            <tbody>
+              {{each ports}}
+              <tr>
+                <td>{{$value.name}}</td>
+                <td>{{$value.host}}</td>
+                <td>{{$value.route}}</td>
+                <td>
+                  <button class="btn btn-primary btn-sm">
+                    <span class="glyphicon glyphicon-pencil"></span>Edit
+                  </button>
+                  <button class="btn btn-danger btn-sm" targetRoute="{{$value.route}}" onclick="deletePort(this)">
+                    <span class="glyphicon glyphicon-remove"></span>Delete
+                  </button>
+                </td>
+              </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function deletePort(e){
+    var route = e.getAttribute('targetRoute')
+    $.ajax({
+      url:"/port/delete",
+      data:{
+        route:route
+      },
+      type:'post',
+      dataType:"json",
+      success: function(data){
+        if(data.result === 0){
+          return window.location.reload()
+        }
+        alert(`Failed:${data.msg}`)
+      }
+    })
+  }
+  //add port
+  $("#add_form").on("submit", function(e) {
+    e.preventDefault();
+    //get form data
+    var formData = $(this).serialize(); //serialize username=xxx&email=xxx
+    //ajax
+    $.ajax({
+      url: "/port/add",
+      data: formData,
+      type: "post",
+      dataType: "json",
+      success: function(data) {
+        let info = document.getElementById('add_info')
+        if (data.result === 0) {
+          //success
+          // alert('Success')
+          window.location.reload()
+        } else {
+          info.style.display = 'block'
+
+          info.className="alert alert-danger"
+          info.innerText = `Failed: ${data.msg}`
+            // alert("add failed");
+        }
+      }
+    });
+  });
+  //erase info
+  $("#add_form").click(function(){
+    document.getElementById('add_info').style.display = 'none'
+  })
+</script>
+{{/block}}

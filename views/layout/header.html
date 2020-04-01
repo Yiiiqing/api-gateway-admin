@@ -1,0 +1,82 @@
+<nav class="navbar navbar-default navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button
+        type="button"
+        class="navbar-toggle collapsed"
+        data-toggle="collapse"
+        data-target="#navbar"
+        aria-expanded="false"
+        aria-controls="navbar"
+      >
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/login">API Gateway configuration system</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul id="menu-ul" class="nav navbar-nav navbar-right">
+        <li onclick="menu(0)" id="menu_0">
+          <a href="/home">Home</a>
+        </li>
+        <li onclick="menu(1)" id="menu_1"><a href="/port">Port</a></li>
+        <li onclick="menu(2)" id="menu_2">
+          <a href="/privilege">Privilege</a>
+        </li>
+        <li onclick="menu(3)" id="menu_3">
+          <a href="/thirdParty">Third Party</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+<script>
+  // change menu active state
+  function menu(menuNo) {
+      try {
+        $("li").each(function(index, element) {
+        if (element.id.indexOf(menuNo) !== -1) {
+            element.className = "active";
+        } else {
+            element.className = "";
+        }
+        });
+      } catch (error) {
+          // console.log("error",error)
+          // setTimeout(() => {
+          //   menu(menuNo)
+          // }, 15);//好像这个时候人眼已经识别不出了
+      }  
+  }
+  (
+      //load menu active every time.
+      function(){
+        let path = window.location.pathname
+        switch(path){
+            case ('/port'):{
+                menu(1)
+                break;
+            }
+            case ('/privilege'):{
+                menu(2)
+                break;
+            }
+            case ('/thirdParty'):{
+                menu(3)
+                break;
+            }
+            case ('/home'):{
+                menu(0)
+                break;
+            }
+            default:{
+                //when login
+                break;
+            }
+        }
+      }
+  )(window)
+</script>
