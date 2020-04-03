@@ -6,6 +6,9 @@
   >
     <div class="page-header">
       <h1>Login <small>please</small></h1>
+      <p style="color:gray">
+        No account? Find administrator to get your account
+      </p>
     </div>
     <form
       id="login_form"
@@ -28,37 +31,53 @@
         />
       </div>
       <button id="btn" type="submit" class="btn btn-default">login</button>
-      <div id="login_alert" class="alert alert-danger" role="alert" style="margin-top: 1vh;display: none;">Check username and password</div>
+      <div
+        id="login_alert"
+        class="alert alert-danger"
+        role="alert"
+        style="margin-top: 1vh;display: none;"
+      >
+        Check username and password
+      </div>
     </form>
   </div>
 </div>
 
+<script type="text/javascript" src="/javascripts/md5.js"></script>
+
 <script type="text/javascript">
-    $("#login_form").on("submit", function(e) {
-      e.preventDefault();
-      //get form data
-      var formData = $(this).serialize(); //serialize username=xxx&email=xxx
-      //ajax
-      $.ajax({
-        url: "/login",
-        data: formData,
-        type: "post",
-        dataType: "json",
-        success: function(data) {
-          if (data.result === 0) {
-            //success
-            //set session
-            window.location = "/home";
-          } else {
-            // alert("login failed");
-            document.getElementById("login_alert").style.display = 'block';
-          }
+  $("#login_form").on("submit", function(e) {
+    e.preventDefault();
+    //get form data
+    var formData = $(this).serialize(); //serialize username=xxx&email=xxx
+    // encrypt password
+    var index = formData.lastIndexOf("=");
+    var cap = formData.substring(0, index + 1);
+    var password = formData.substring(index + 1, formData.length);
+    password = hex_md5(password);
+    formData = cap + password;
+    console.log(hex_md5('fame1234'))
+    //ajax
+    $.ajax({
+      url: "/login",
+      data: formData,
+      type: "post",
+      dataType: "json",
+      success: function(data) {
+        if (data.result === 0) {
+          //success
+          //set session
+          window.location = "/home";
+        } else {
+          // alert("login failed");
+          document.getElementById("login_alert").style.display = "block";
         }
-      });
+      }
     });
-    $('#login_form').click(function(){
-        document.getElementById("login_alert").style.display = 'none';
-    })
-  </script>
-  
+  });
+  $("#login_form").click(function() {
+    document.getElementById("login_alert").style.display = "none";
+  });
+</script>
+
 {{/block}}

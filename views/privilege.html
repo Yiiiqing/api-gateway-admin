@@ -1,11 +1,63 @@
 {{extend './layout.html'}} {{block 'content'}}
-<div class="container">
-  <div class="jumbotron" style="margin-top: 10vh; margin-left: 10vw;">
+<div class="container" style="margin-left: 5vw;">
+  <div class="jumbotron" style="margin-top: 10vh; margin-left: 10vw; width: 65vw;">
     <div class="page-header">
       <h1>Privilege <small>configuration</small></h1>
+      <h2>
+        You are
+        <div class="label label-success">{{currentUser.username}}</div>
+      </h2>
+      <div id="alert-msg" class="hide">
+        <div class="alert alert-success"></div>
+      </div>
+    </div>
+    <div class="panel panel-primary">
+      <div class="panel-heading">Add</div>
+      <div class="panel-body">
+        <form class="form-inline" id="add_form">
+          <div class="form-group">
+            <label for="username">Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="username"
+              name="username"
+              placeholder="eg.yiqing"
+            />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              name="password"
+              id="password"
+              placeholder="do not be easy!"
+            />
+          </div>
+          <input
+            type="reset"
+            value="reset"
+            class="btn btn-warning"
+            style="margin-left: 10%;"
+          />
+          <button
+            type="submit"
+            class="btn btn-success"
+            style="margin-left: 1%;"
+          >
+            Add
+          </button>
+        </form>
+        <div
+          id="add_info"
+          class="alert alert-success"
+          style="display: none;"
+        ></div>
+      </div>
     </div>
     <div class="panel panel-default">
-      <div class="panel-heading">Port List</div>
+      <div class="panel-heading">User List</div>
       <div class="panel-body">
         <div class="table-responsive">
           <table class="table table-hover">
@@ -16,21 +68,42 @@
               <th>
                 Password
               </th>
-              <th>
+              <th style="width: 30%;">
                 Opration
               </th>
             </thead>
             <tbody>
               {{each users}}
               <tr>
-                <td>{{$value.username}}</td>
-                <td><input type="password" value="{{$value.password}}" /></td>
+                <td><h4>{{$value.username}}</h4></td>
                 <td>
-                  <button>
-                    <span class="glyphicon glyphicon-pencil"></span>Edit
+                  <input
+                    id="input_{{$value.username}}"
+                    readonly
+                    class="form-control"
+                    type="password"
+                    value="{{$value.password}}"
+                  />
+                </td>
+                <td id="{{$value.username}}" class="opt">
+                  <button
+                    id="edit_btn_{{$value.username}}"
+                    class="btn btn-primary"
+                    user="{{$value.username}}"
+                    onclick="handleEdit(this)"
+                  >
+                    <span
+                      id="edit_icon_{{$value.username}}"
+                      class="glyphicon glyphicon-edit"
+                    ></span>
+                    Edit
                   </button>
-                  <button>
-                    <span class="glyphicon glyphicon-remove"></span>Delete
+                  <button
+                    class="btn btn-danger"
+                    user="{{$value.username}}"
+                    onclick="handleDelete(this)"
+                  >
+                    <span class="glyphicon glyphicon-remove"></span> Delete
                   </button>
                 </td>
               </tr>
@@ -42,5 +115,130 @@
     </div>
   </div>
 </div>
+
+<style>
+  .show {
+    display: block;
+    display: flex;
+  }
+  .hide {
+    display: none;
+  }
+  .opt {
+    display: flex;
+  }
+  .btn {
+    margin-left: 2%;
+  }
+</style>
+
+<script type="text/javascript" src="/javascripts/md5.js"></script>
+<script>
+  //decide btns show or not
+  window.onload = getBtn();
+  function getBtn() {
+    $(".opt").each(function(index, element) {
+      //root can do everything
+      if ("{{currentUser.username}}" === "root") {
+        return (element.className = "opt show");
+      }
+      if (element.id === "{{currentUser.username}}") {
+        return (element.className = "opt show");
+      }
+      element.className = "hide";
+    });
+  }
+  function handleDelete(ctx) {
+    var userEdit = ctx.getAttribute("user");
+    $.ajax({
+      url: "/privilege",
+      data: {
+        username: userEdit
+      },
+      dataType: "json",
+      method: "delete",
+      success: function(result) {
+        if (result.result === 0) return window.location.reload();
+        var alertBox = document.getElementById("alert-msg");
+        alertBox.className = "show";
+        alertBox.innerHTML = `<div class="alert alert-danger">Failed: ${result.msg}</div>`;
+      }
+    });
+  }
+  function handleEdit(ctx) {
+    //get username and pwd
+    var userEdit = ctx.getAttribute("user");
+    var pwdInput = document.getElementById(`input_${userEdit}`);
+    var editBtn = document.getElementById(`edit_btn_${userEdit}`);
+
+    //judge if it is finish
+    if (ctx.innerHTML.indexOf("Submit") !== -1) {
+      //finish submit
+      var pwd = hex_md5(pwdInput.value);
+      $.ajax({
+        url: "/privilege",
+        data: {
+          username: userEdit,
+          password: pwd
+        },
+        dataType: "json",
+        method: "put",
+        success: function(result) {
+          //reset btn to edit
+          pwdInput.setAttribute("readonly", true);
+          editBtn.className = "btn btn-primary";
+          editBtn.innerHTML = `<span class="glyphicon glyphicon-edit"></span> Edit`;
+          //alert msg
+          var alertBox = document.getElementById("alert-msg");
+          alertBox.className = "show";
+          if (result.result === 0) {
+            return (alertBox.innerHTML = `<div class="alert alert-success">Update successfully!</div>`);
+          }
+          alertBox.innerHTML = `<div class="alert alert-danger">Failed: ${result.msg}</div>`;
+        }
+      });
+      return;
+    }
+    //let input can be edit
+    pwdInput.removeAttribute("readonly");
+    editBtn.className = "btn btn-success";
+    editBtn.innerHTML = `<span class="glyphicon glyphicon-ok"></span> Submit!`;
+  }
+  function checkRoot() {
+    if ("{{currentUser.username}}" === "root") return true;
+    return false;
+  }
+  //add port
+  $("#add_form").on("submit", function(e) {
+    e.preventDefault();
+    //get form data
+    var formData = $(this).serialize(); //serialize username=xxx&email=xxx
+    // encrypt password
+    var index = formData.lastIndexOf('=');
+    var cap = formData.substring(0,index+1);
+    var password = formData.substring(index+1,formData.length);
+    password = hex_md5(password)
+    formData = cap + password
+    $.ajax({
+      url: "/privilege",
+      data: formData,
+      type: "post",
+      dataType: "json",
+      success: function(data) {
+        let info = document.getElementById("add_info");
+        if (data.result === 0) {
+          //success
+          // alert('Success')
+          window.location.reload();
+        } else {
+          info.style.display = "block";
+          info.className = "alert alert-danger";
+          info.innerText = `Failed: ${data.msg}`;
+          // alert("add failed");
+        }
+      }
+    });
+  });
+</script>
 
 {{/block}}

@@ -72,10 +72,10 @@
                 <td>{{$value.route}}</td>
                 <td>
                   <button class="btn btn-primary btn-sm">
-                    <span class="glyphicon glyphicon-pencil"></span>Edit
+                    <span class="glyphicon glyphicon-edit"></span> Edit
                   </button>
                   <button class="btn btn-danger btn-sm" targetRoute="{{$value.route}}" onclick="deletePort(this)">
-                    <span class="glyphicon glyphicon-remove"></span>Delete
+                    <span class="glyphicon glyphicon-remove"></span> Delete
                   </button>
                 </td>
               </tr>
@@ -125,7 +125,6 @@
           window.location.reload()
         } else {
           info.style.display = 'block'
-
           info.className="alert alert-danger"
           info.innerText = `Failed: ${data.msg}`
             // alert("add failed");
